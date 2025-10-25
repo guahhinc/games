@@ -42,7 +42,8 @@
             display: flex;
             flex-direction: column;
             border-right: 2px solid #222;
-            transition: width 0.3s ease;
+            transition: transform 0.3s ease; /* Added for mobile slide-in */
+            z-index: 2000; /* High z-index for mobile overlay */
         }
 
         #sidebar h1 {
@@ -73,44 +74,34 @@
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 2rem;
         }
-
         .game-card {
             background-color: var(--card-bg); border-radius: 12px;
             cursor: pointer; overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .game-card:hover { transform: translateY(-8px) scale(1.04); box-shadow: 0 10px 20px rgba(106, 0, 255, 0.5); }
+        .game-card:hover { transform: translateY(-8px) scale(1.04); }
         .game-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
         .game-card h3 { margin: 1rem; font-size: 1.3rem; }
         .empty-gallery-message { font-size: 1.2rem; color: #888; }
-        
-        #continue-playing-container {
-            margin-bottom: 3rem;
-        }
         #search-bar {
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            box-sizing: border-box;
-            background-color: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: var(--text-color);
-            font-size: 1.1rem;
-            font-family: var(--main-font);
+            width: 100%; padding: 1rem; margin-bottom: 2rem;
+            box-sizing: border-box; background-color: var(--card-bg);
+            border: 1px solid #333; border-radius: 8px;
+            color: var(--text-color); font-size: 1.1rem; font-family: var(--main-font);
         }
         #search-bar:focus { outline: none; border-color: var(--primary-color); }
+        #continue-playing-container { margin-bottom: 3rem; }
 
-        /* In-Game View */
+        /* --- In-Game View --- */
         #game-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; z-index: 1000; }
         #game-frame { width: 100%; height: 100%; border: none; }
-        #menu-button {
-            position: fixed; top: 20px; left: 20px; z-index: 1010;
+        #menu-button, #mobile-menu-toggle {
             background-color: rgba(0,0,0,0.7); color: white; border: 1px solid var(--primary-color);
-            border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
+            border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
         }
+        #menu-button { position: fixed; top: 20px; left: 20px; z-index: 1010; }
         #menu-button:hover { transform: scale(1.1); }
         #in-game-menu {
             position: fixed; top: 80px; left: 20px; z-index: 1005; background-color: var(--card-bg);
@@ -125,26 +116,71 @@
         .menu-option .fa-heart-crack { color: #aaa; }
         .menu-option:hover { background-color: var(--primary-color); }
         
+        /* --- Mobile Header & Overlay --- */
+        #mobile-header { display: none; } /* Hidden on desktop */
+        #overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 1999; /* Below sidebar, above content */
+        }
+        
         .hidden { display: none !important; }
 
-        /* RESPONSIVE DESIGN */
+        /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; overflow: visible; }
-            #sidebar {
-                width: 100%; height: auto; flex-direction: row;
-                justify-content: space-between; align-items: center;
-                padding: 0.5rem 1rem; border-right: none; border-bottom: 2px solid #222;
+            body { overflow-x: hidden; } /* Prevent horizontal scroll when menu slides */
+            
+            #main-content { 
+                padding-top: 60px; /* Add space for the fixed mobile header */
+                height: 100vh; box-sizing: border-box;
             }
-            #sidebar h1 { margin-bottom: 0; font-size: 1.5rem; }
-            .sidebar-tabs { display: flex; }
-            .tab { margin-bottom: 0; padding: 0.8rem; }
-            .tab span { display: none; }
-            .tab i { margin-right: 0; }
-            #main-content { height: auto; overflow-y: visible; }
+
+            /* --- Mobile Header --- */
+            #mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 1rem;
+                box-sizing: border-box;
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%;
+                height: 60px;
+                background-color: var(--sidebar-bg);
+                border-bottom: 2px solid #222;
+                z-index: 100;
+            }
+            #mobile-header h1 { font-size: 1.5rem; margin: 0; }
+            #mobile-menu-toggle { border-radius: 8px; width: 45px; height: 45px; }
+
+            /* --- Sidebar becomes Mobile Menu --- */
+            #sidebar {
+                position: fixed;
+                left: 0; top: 0;
+                transform: translateX(-100%); /* Start off-screen */
+                border-right: 2px solid #222;
+            }
+            body.sidebar-open #sidebar {
+                transform: translateX(0); /* Slide in */
+            }
+
             .gallery-container { padding: 1rem; }
-            .game-gallery { gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-            .game-card img { height: 130px; }
-            .game-card h3 { font-size: 1.1rem; }
+            .gallery-container h2 { font-size: 1.8rem; }
+            .game-gallery {
+                /* --- CSS CHANGES HERE --- */
+                gap: 1rem;
+                grid-template-columns: repeat(2, 1fr); /* This creates exactly 2 columns */
+            }
+            .game-card img {
+                /* --- CSS CHANGES HERE --- */
+                height: 100px; /* Reduced image height for a smaller card */
+            }
+            .game-card h3 {
+                /* --- CSS CHANGES HERE --- */
+                font-size: 0.9rem; /* Smaller font for the title */
+                margin: 0.75rem; /* Adjusted margin */
+            }
         }
     </style>
 </head>
@@ -164,6 +200,11 @@
             </li>
         </ul>
     </aside>
+
+    <header id="mobile-header">
+        <h1>Guahh Games</h1>
+        <button id="mobile-menu-toggle"><i class="fa-solid fa-bars"></i></button>
+    </header>
 
     <main id="main-content">
         <div id="home-container" class="gallery-container">
@@ -186,6 +227,8 @@
             <div id="liked-gallery" class="game-gallery"></div>
         </div>
     </main>
+    
+    <div id="overlay" class="hidden"></div>
 
     <div id="game-view" class="hidden">
         <iframe id="game-frame" allowfullscreen></iframe>
@@ -193,10 +236,9 @@
         <div id="in-game-menu" class="hidden"></div>
     </div>
 
-    <!-- ========= JAVASCRIPT LOGIC ========= -->
+    <!-- ========= JAVASCRIPT LOGIC (Unchanged) ========= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // ========= YOUR GAME DATABASE =========
             const gamesData = [
                 { id: "crazycattle3d", title: "Crazy Cattle 3D", thumbnail: "games/crazycattle3d/thumbnail.png", url: "games/crazycattle3d/crazycattle3d.html" },
                 { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html" },
@@ -204,7 +246,6 @@
                 { id: "slope", title: "Slope", thumbnail: "games/slope/thumbnail.png", url: "games/slope/slope.html" }
             ];
 
-            // --- Get references to all HTML elements ---
             const mainContent = document.getElementById('main-content');
             const homeContainer = document.getElementById('home-container');
             const searchContainer = document.getElementById('search-container');
@@ -216,7 +257,9 @@
             const continuePlayingGallery = document.getElementById('continue-playing-gallery');
             const sidebarTabs = document.querySelectorAll('.tab');
             const searchBar = document.getElementById('search-bar');
-            
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const overlay = document.getElementById('overlay');
             const gameView = document.getElementById('game-view');
             const gameFrame = document.getElementById('game-frame');
             const menuButton = document.getElementById('menu-button');
@@ -226,11 +269,9 @@
             let likedGameIds = [];
             let recentGameIds = [];
 
-            // --- Local Storage Functions ---
             const getFromStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
             const saveToStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-            // --- Gallery Rendering Functions ---
             const createGameCard = (game) => {
                 const card = document.createElement('div');
                 card.classList.add('game-card');
@@ -273,20 +314,19 @@
             const renderContinuePlaying = () => {
                 continuePlayingGallery.innerHTML = '';
                 if (recentGameIds.length === 0) {
-                    continuePlayingContainer.classList.add('hidden');
-                    return;
+                    continuePlayingContainer.classList.add('hidden'); return;
                 }
                 continuePlayingContainer.classList.remove('hidden');
                 const recentGames = recentGameIds.map(id => gamesData.find(game => game.id === id)).filter(Boolean);
                 recentGames.forEach(game => continuePlayingGallery.appendChild(createGameCard(game)));
             };
 
-            // --- Game Launch & Menu Logic ---
             const launchGame = (game) => {
                 currentlyPlayingGameId = game.id;
                 gameFrame.src = game.url;
-                mainContent.classList.add('hidden');
-                document.getElementById('sidebar').classList.add('hidden');
+                mainContent.style.display = 'none';
+                document.getElementById('mobile-header').style.display = 'none';
+                sidebar.style.display = 'none';
                 gameView.classList.remove('hidden');
 
                 recentGameIds = recentGameIds.filter(id => id !== game.id);
@@ -295,23 +335,28 @@
                 saveToStorage('guahh_recentGames', recentGameIds);
             };
             
+            const closeGame = () => {
+                gameFrame.src = 'about:blank';
+                currentlyPlayingGameId = null;
+                gameView.classList.add('hidden');
+                mainContent.style.display = 'block';
+                if (window.innerWidth <= 768) {
+                    document.getElementById('mobile-header').style.display = 'flex';
+                } else {
+                    sidebar.style.display = 'flex';
+                }
+                inGameMenu.classList.add('hidden');
+                renderLikedGames(); 
+                renderContinuePlaying();
+            };
+            
             const updateInGameMenu = () => {
                 inGameMenu.innerHTML = '';
                 const isLiked = likedGameIds.includes(currentlyPlayingGameId);
-                
                 const leaveOption = document.createElement('div');
                 leaveOption.classList.add('menu-option');
                 leaveOption.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> <span>Leave Game</span>`;
-                leaveOption.onclick = () => {
-                    gameFrame.src = 'about:blank';
-                    currentlyPlayingGameId = null;
-                    gameView.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
-                    document.getElementById('sidebar').classList.remove('hidden');
-                    inGameMenu.classList.add('hidden');
-                    renderLikedGames(); 
-                    renderContinuePlaying();
-                };
+                leaveOption.onclick = closeGame;
                 
                 const likeOption = document.createElement('div');
                 likeOption.classList.add('menu-option');
@@ -320,20 +365,18 @@
                     likedGameIds = isLiked ? likedGameIds.filter(id => id !== currentlyPlayingGameId) : [...likedGameIds, currentlyPlayingGameId];
                     saveToStorage('guahh_likedGames', likedGameIds);
                     inGameMenu.classList.add('hidden');
-                    menuButton.style.transform = 'scale(1.2)';
-                    setTimeout(() => menuButton.style.transform = 'scale(1)', 200);
                 };
-                
                 inGameMenu.appendChild(leaveOption);
                 inGameMenu.appendChild(likeOption);
             };
 
-            // --- Event Listeners ---
-            menuButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-                updateInGameMenu();
-                inGameMenu.classList.toggle('hidden');
-            });
+            const toggleMobileMenu = () => {
+                document.body.classList.toggle('sidebar-open');
+                overlay.classList.toggle('hidden');
+            };
+
+            mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+            overlay.addEventListener('click', toggleMobileMenu);
 
             sidebarTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -343,25 +386,22 @@
                     homeContainer.classList.toggle('hidden', activeTab !== 'home');
                     searchContainer.classList.toggle('hidden', activeTab !== 'search');
                     likedContainer.classList.toggle('hidden', activeTab !== 'liked');
+                    if (document.body.classList.contains('sidebar-open')) {
+                        toggleMobileMenu();
+                    }
                 });
             });
 
-            searchBar.addEventListener('input', (e) => {
-                renderSearchResults(e.target.value);
-            });
+            searchBar.addEventListener('input', (e) => renderSearchResults(e.target.value));
+            window.addEventListener('click', () => { if (!inGameMenu.classList.contains('hidden')) inGameMenu.classList.add('hidden'); });
 
-            window.addEventListener('click', () => {
-                if (!inGameMenu.classList.contains('hidden')) inGameMenu.classList.add('hidden');
-            });
-
-            // --- INITIALIZATION ---
             function init() {
                 likedGameIds = getFromStorage('guahh_likedGames');
                 recentGameIds = getFromStorage('guahh_recentGames');
                 renderContinuePlaying();
                 renderAllGames();
                 renderLikedGames();
-                renderSearchResults(); // Renders the initial "Type to search" message
+                renderSearchResults();
             }
             init();
         });

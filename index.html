@@ -32,7 +32,6 @@
             overflow: hidden;
         }
         
-        /* --- Sidebar Styles (Desktop) --- */
         #sidebar {
             width: 250px;
             background-color: var(--sidebar-bg);
@@ -65,7 +64,6 @@
         .tab:hover { background-color: #2a2a2a; }
         .tab.active { background-color: var(--primary-color); color: white; font-weight: 700; }
 
-        /* --- Main Content Styles --- */
         #main-content { flex-grow: 1; height: 100%; overflow-y: auto; }
         .gallery-container { padding: 2rem; }
         .gallery-container h2 { font-size: 2rem; margin-top: 0; margin-bottom: 1.5rem; }
@@ -75,6 +73,7 @@
             gap: 2rem;
         }
         .game-card {
+            position: relative; /* --- ADDED: Needed for tag positioning --- */
             background-color: var(--card-bg); border-radius: 12px;
             cursor: pointer; overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
@@ -83,6 +82,24 @@
         .game-card:hover { transform: translateY(-8px) scale(1.04); }
         .game-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
         .game-card h3 { margin: 1rem; font-size: 1.3rem; }
+        
+        /* --- NEW STYLE: Mobile Compatibility Tag --- */
+        .mobile-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
         .empty-gallery-message { font-size: 1.2rem; color: #888; }
         #search-bar {
             width: 100%; padding: 1rem; margin-bottom: 2rem;
@@ -93,7 +110,6 @@
         #search-bar:focus { outline: none; border-color: var(--primary-color); }
         #continue-playing-container { margin-bottom: 3rem; }
 
-        /* --- In-Game View --- */
         #game-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; z-index: 1000; }
         #game-frame { width: 100%; height: 100%; border: none; }
         #menu-button, #mobile-menu-toggle {
@@ -114,20 +130,13 @@
         .menu-option i { margin-right: 12px; }
         .menu-option .fa-heart { color: #ff4d4d; }
         .menu-option .fa-heart-crack { color: #aaa; }
-        /* --- NEW/UPDATED STYLES --- */
         .menu-option:hover { background-color: #3a3a3a; }
         .menu-option.selected { background-color: var(--primary-color); }
         
-        /* --- Mobile Header & Overlay --- */
         #mobile-header { display: none; }
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6); z-index: 1999;
-        }
-        
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1999; }
         .hidden { display: none !important; }
 
-        /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 768px) {
             body { overflow-x: hidden; }
             #main-content { padding-top: 60px; height: 100vh; box-sizing: border-box; }
@@ -149,6 +158,14 @@
             .game-gallery { gap: 1rem; grid-template-columns: repeat(2, 1fr); }
             .game-card img { height: 100px; }
             .game-card h3 { font-size: 0.9rem; margin: 0.75rem; }
+            
+            /* --- NEW STYLE: Adjust mobile tag for smaller screens --- */
+            .mobile-tag {
+                top: 6px;
+                left: 6px;
+                font-size: 0.7rem;
+                padding: 4px 6px;
+            }
         }
     </style>
 </head>
@@ -199,12 +216,13 @@
     <!-- ========= JAVASCRIPT LOGIC ========= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- UPDATED: Added isMobile property ---
             const gamesData = [
-                { id: "crazycattle3d", title: "Crazy Cattle 3D", thumbnail: "games/crazycattle3d/thumbnail.png", url: "games/crazycattle3d/crazycattle3d.html" },
-                { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html" },
-                { id: "obby99willlose", title: "Obby 99 Will Lose", thumbnail: "games/obby99willlose/thumbnail.png", url: "games/obby99willlose/obby99willlose.html" },
-                { id: "slope", title: "Slope", thumbnail: "games/slope/thumbnail.png", url: "games/slope/slope.html" },
-                { id: "baldisbasicsremastered", title: "Baldi's Basics Classic Remastered", thumbnail: "games/baldisbasicsremastered/thumbnail.png", url: "games/baldisbasicsremastered/baldisbasicsremastered.html" }
+                { id: "crazycattle3d", title: "Crazy Cattle 3D", thumbnail: "games/crazycattle3d/thumbnail.png", url: "games/crazycattle3d/crazycattle3d.html", isMobile: true },
+                { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html", isMobile: true },
+                { id: "obby99willlose", title: "Obby 99 Will Lose", thumbnail: "games/obby99willlose/thumbnail.png", url: "games/obby99willlose/obby99willlose.html", isMobile: true },
+                { id: "slope", title: "Slope", thumbnail: "games/slope/thumbnail.png", url: "games/slope/slope.html", isMobile: false },
+                { id: "baldisbasicsremastered", title: "Baldi's Basics Classic Remastered", thumbnail: "games/baldisbasicsremastered/thumbnail.png", url: "games/baldisbasicsremastered/baldisbasicsremastered.html", isMobile: false }
             ];
 
             const mainContent = document.getElementById('main-content');
@@ -229,15 +247,26 @@
             let currentlyPlayingGameId = null;
             let likedGameIds = [];
             let recentGameIds = [];
-            let selectedMenuIndex = -1; // For keyboard navigation
+            let selectedMenuIndex = -1;
 
             const getFromStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
             const saveToStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
+            // --- UPDATED: Function now checks for isMobile and adds the tag ---
             const createGameCard = (game) => {
                 const card = document.createElement('div');
                 card.classList.add('game-card');
-                card.innerHTML = `<img src="${game.thumbnail}" alt="${game.title}"><h3>${game.title}</h3>`;
+                
+                const mobileTagHtml = game.isMobile 
+                    ? `<div class="mobile-tag"><i class="fa-solid fa-mobile-screen-button"></i></div>`
+                    : '';
+                    
+                card.innerHTML = `
+                    ${mobileTagHtml}
+                    <img src="${game.thumbnail}" alt="${game.title}">
+                    <h3>${game.title}</h3>
+                `;
+                
                 card.addEventListener('click', () => launchGame(game));
                 return card;
             };
@@ -306,7 +335,7 @@
                     sidebar.style.display = 'flex';
                 }
                 inGameMenu.classList.add('hidden');
-                selectedMenuIndex = -1; // Reset selection
+                selectedMenuIndex = -1;
                 renderLikedGames(); 
                 renderContinuePlaying();
             };
@@ -318,7 +347,6 @@
                 leaveOption.classList.add('menu-option');
                 leaveOption.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> <span>Leave Game</span>`;
                 leaveOption.onclick = closeGame;
-                
                 const likeOption = document.createElement('div');
                 likeOption.classList.add('menu-option');
                 likeOption.innerHTML = isLiked ? `<i class="fa-solid fa-heart-crack"></i> <span>Unlike Game</span>` : `<i class="fa-solid fa-heart"></i> <span>Like Game</span>`;
@@ -334,13 +362,9 @@
             const updateMenuHighlight = (newIndex) => {
                 const options = inGameMenu.querySelectorAll('.menu-option');
                 if (options.length === 0) return;
-                
-                // Remove existing highlight
                 if (selectedMenuIndex > -1) {
                     options[selectedMenuIndex].classList.remove('selected');
                 }
-                
-                // Add new highlight
                 options[newIndex].classList.add('selected');
                 selectedMenuIndex = newIndex;
             };
@@ -350,10 +374,10 @@
                 if (isHidden) {
                     updateInGameMenu();
                     inGameMenu.classList.remove('hidden');
-                    updateMenuHighlight(0); // Select first item
+                    updateMenuHighlight(0);
                 } else {
                     inGameMenu.classList.add('hidden');
-                    selectedMenuIndex = -1; // Deselect
+                    selectedMenuIndex = -1;
                 }
             };
 
@@ -364,7 +388,6 @@
 
             mobileMenuToggle.addEventListener('click', toggleMobileMenu);
             overlay.addEventListener('click', toggleMobileMenu);
-
             menuButton.addEventListener('click', (event) => {
                 event.stopPropagation();
                 toggleInGameMenu();
@@ -385,7 +408,6 @@
             });
 
             searchBar.addEventListener('input', (e) => renderSearchResults(e.target.value));
-            
             window.addEventListener('click', () => {
                 if (!inGameMenu.classList.contains('hidden')) {
                     inGameMenu.classList.add('hidden');
@@ -393,21 +415,15 @@
                 }
             });
             
-            // --- GLOBAL KEY PRESS HANDLER ---
             window.addEventListener('keydown', (e) => {
-                // Only handle keys if a game is being played
                 if (currentlyPlayingGameId === null) return;
-
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     toggleInGameMenu();
                 }
-
-                // Handle menu navigation if the menu is visible
                 if (!inGameMenu.classList.contains('hidden')) {
                     const options = inGameMenu.querySelectorAll('.menu-option');
                     if (options.length === 0) return;
-
                     if (e.key === 'ArrowDown') {
                         e.preventDefault();
                         const newIndex = (selectedMenuIndex + 1) % options.length;

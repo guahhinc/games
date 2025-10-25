@@ -64,7 +64,14 @@
         .tab:hover { background-color: #2a2a2a; }
         .tab.active { background-color: var(--primary-color); color: white; font-weight: 700; }
 
-        #main-content { flex-grow: 1; height: 100%; overflow-y: auto; }
+        #main-content {
+            flex-grow: 1;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 5rem;
+            box-sizing: border-box;
+        }
+
         .gallery-container { padding: 2rem; }
         .gallery-container h2 { font-size: 2rem; margin-top: 0; margin-bottom: 1.5rem; }
         .game-gallery {
@@ -73,7 +80,7 @@
             gap: 2rem;
         }
         .game-card {
-            position: relative; /* --- ADDED: Needed for tag positioning --- */
+            position: relative;
             background-color: var(--card-bg); border-radius: 12px;
             cursor: pointer; overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
@@ -83,21 +90,12 @@
         .game-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
         .game-card h3 { margin: 1rem; font-size: 1.3rem; }
         
-        /* --- NEW STYLE: Mobile Compatibility Tag --- */
         .mobile-tag {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 5px 8px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
+            position: absolute; top: 10px; left: 10px;
+            background-color: var(--primary-color); color: white;
+            padding: 5px 8px; border-radius: 5px; font-size: 0.8rem;
+            font-weight: 700; display: flex; align-items: center;
+            justify-content: center; z-index: 10;
         }
         
         .empty-gallery-message { font-size: 1.2rem; color: #888; }
@@ -139,7 +137,7 @@
 
         @media (max-width: 768px) {
             body { overflow-x: hidden; }
-            #main-content { padding-top: 60px; height: 100vh; box-sizing: border-box; }
+            #main-content { padding-top: 60px; height: 100vh; }
             #mobile-header {
                 display: flex; align-items: center; justify-content: space-between;
                 padding: 0 1rem; box-sizing: border-box; position: fixed;
@@ -158,14 +156,7 @@
             .game-gallery { gap: 1rem; grid-template-columns: repeat(2, 1fr); }
             .game-card img { height: 100px; }
             .game-card h3 { font-size: 0.9rem; margin: 0.75rem; }
-            
-            /* --- NEW STYLE: Adjust mobile tag for smaller screens --- */
-            .mobile-tag {
-                top: 6px;
-                left: 6px;
-                font-size: 0.7rem;
-                padding: 4px 6px;
-            }
+            .mobile-tag { top: 6px; left: 6px; font-size: 0.7rem; padding: 4px 6px; }
         }
     </style>
 </head>
@@ -216,7 +207,6 @@
     <!-- ========= JAVASCRIPT LOGIC ========= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- UPDATED: Added isMobile property ---
             const gamesData = [
                 { id: "crazycattle3d", title: "Crazy Cattle 3D", thumbnail: "games/crazycattle3d/thumbnail.png", url: "games/crazycattle3d/crazycattle3d.html", isMobile: true },
                 { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html", isMobile: true },
@@ -251,31 +241,18 @@
 
             const getFromStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
             const saveToStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
-
-            // --- UPDATED: Function now checks for isMobile and adds the tag ---
             const createGameCard = (game) => {
                 const card = document.createElement('div');
                 card.classList.add('game-card');
-                
-                const mobileTagHtml = game.isMobile 
-                    ? `<div class="mobile-tag"><i class="fa-solid fa-mobile-screen-button"></i></div>`
-                    : '';
-                    
-                card.innerHTML = `
-                    ${mobileTagHtml}
-                    <img src="${game.thumbnail}" alt="${game.title}">
-                    <h3>${game.title}</h3>
-                `;
-                
+                const mobileTagHtml = game.isMobile ? `<div class="mobile-tag"><i class="fa-solid fa-mobile-screen-button"></i></div>` : '';
+                card.innerHTML = `${mobileTagHtml}<img src="${game.thumbnail}" alt="${game.title}"><h3>${game.title}</h3>`;
                 card.addEventListener('click', () => launchGame(game));
                 return card;
             };
-
             const renderAllGames = () => {
                 homeGallery.innerHTML = '';
                 gamesData.forEach(game => homeGallery.appendChild(createGameCard(game)));
             };
-
             const renderSearchResults = (searchTerm = '') => {
                 searchResultsGallery.innerHTML = '';
                 if (!searchTerm) {
@@ -290,7 +267,6 @@
                     filteredGames.forEach(game => searchResultsGallery.appendChild(createGameCard(game)));
                 }
             };
-            
             const renderLikedGames = () => {
                 likedGallery.innerHTML = '';
                 const likedGames = gamesData.filter(game => likedGameIds.includes(game.id));
@@ -300,9 +276,8 @@
                     likedGames.forEach(game => likedGallery.appendChild(createGameCard(game)));
                 }
             };
-
             const renderContinuePlaying = () => {
-                continuePlayingGallery.innerHTML = '';
+                continuePlayingContainer.innerHTML = '';
                 if (recentGameIds.length === 0) {
                     continuePlayingContainer.classList.add('hidden'); return;
                 }
@@ -310,7 +285,6 @@
                 const recentGames = recentGameIds.map(id => gamesData.find(game => game.id === id)).filter(Boolean);
                 recentGames.forEach(game => continuePlayingGallery.appendChild(createGameCard(game)));
             };
-
             const launchGame = (game) => {
                 currentlyPlayingGameId = game.id;
                 gameFrame.src = game.url;
@@ -324,18 +298,19 @@
                 saveToStorage('guahh_recentGames', recentGameIds);
             };
             
+            // --- UPDATED FUNCTION TO FIX MOBILE BUG ---
             const closeGame = () => {
                 gameFrame.src = 'about:blank';
                 currentlyPlayingGameId = null;
                 gameView.classList.add('hidden');
-                mainContent.style.display = 'block';
-                if (window.innerWidth <= 768) {
-                    document.getElementById('mobile-header').style.display = 'flex';
-                } else {
-                    sidebar.style.display = 'flex';
-                }
+
+                // Remove inline styles to let the CSS stylesheet take control again
+                mainContent.style.display = '';
+                sidebar.style.display = '';
+                document.getElementById('mobile-header').style.display = '';
+                
                 inGameMenu.classList.add('hidden');
-                selectedMenuIndex = -1;
+                selectedMenuIndex = -1; // Reset selection
                 renderLikedGames(); 
                 renderContinuePlaying();
             };
@@ -358,7 +333,6 @@
                 inGameMenu.appendChild(leaveOption);
                 inGameMenu.appendChild(likeOption);
             };
-
             const updateMenuHighlight = (newIndex) => {
                 const options = inGameMenu.querySelectorAll('.menu-option');
                 if (options.length === 0) return;
@@ -368,7 +342,6 @@
                 options[newIndex].classList.add('selected');
                 selectedMenuIndex = newIndex;
             };
-            
             const toggleInGameMenu = () => {
                 const isHidden = inGameMenu.classList.contains('hidden');
                 if (isHidden) {
@@ -380,7 +353,6 @@
                     selectedMenuIndex = -1;
                 }
             };
-
             const toggleMobileMenu = () => {
                 document.body.classList.toggle('sidebar-open');
                 overlay.classList.toggle('hidden');
@@ -414,7 +386,6 @@
                     selectedMenuIndex = -1;
                 }
             });
-            
             window.addEventListener('keydown', (e) => {
                 if (currentlyPlayingGameId === null) return;
                 if (e.key === 'Escape') {

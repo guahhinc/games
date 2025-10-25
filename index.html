@@ -42,8 +42,8 @@
             display: flex;
             flex-direction: column;
             border-right: 2px solid #222;
-            transition: transform 0.3s ease; /* Added for mobile slide-in */
-            z-index: 2000; /* High z-index for mobile overlay */
+            transition: transform 0.3s ease;
+            z-index: 2000;
         }
 
         #sidebar h1 {
@@ -114,73 +114,41 @@
         .menu-option i { margin-right: 12px; }
         .menu-option .fa-heart { color: #ff4d4d; }
         .menu-option .fa-heart-crack { color: #aaa; }
-        .menu-option:hover { background-color: var(--primary-color); }
+        /* --- NEW/UPDATED STYLES --- */
+        .menu-option:hover { background-color: #3a3a3a; }
+        .menu-option.selected { background-color: var(--primary-color); }
         
         /* --- Mobile Header & Overlay --- */
-        #mobile-header { display: none; } /* Hidden on desktop */
+        #mobile-header { display: none; }
         #overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            z-index: 1999; /* Below sidebar, above content */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); z-index: 1999;
         }
         
         .hidden { display: none !important; }
 
         /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 768px) {
-            body { overflow-x: hidden; } /* Prevent horizontal scroll when menu slides */
-            
-            #main-content { 
-                padding-top: 60px; /* Add space for the fixed mobile header */
-                height: 100vh; box-sizing: border-box;
-            }
-
-            /* --- Mobile Header --- */
+            body { overflow-x: hidden; }
+            #main-content { padding-top: 60px; height: 100vh; box-sizing: border-box; }
             #mobile-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 0 1rem;
-                box-sizing: border-box;
-                position: fixed;
-                top: 0; left: 0;
-                width: 100%;
-                height: 60px;
-                background-color: var(--sidebar-bg);
-                border-bottom: 2px solid #222;
-                z-index: 100;
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 0 1rem; box-sizing: border-box; position: fixed;
+                top: 0; left: 0; width: 100%; height: 60px;
+                background-color: var(--sidebar-bg); border-bottom: 2px solid #222; z-index: 100;
             }
             #mobile-header h1 { font-size: 1.5rem; margin: 0; }
             #mobile-menu-toggle { border-radius: 8px; width: 45px; height: 45px; }
-
-            /* --- Sidebar becomes Mobile Menu --- */
             #sidebar {
-                position: fixed;
-                left: 0; top: 0;
-                transform: translateX(-100%); /* Start off-screen */
-                border-right: 2px solid #222;
+                position: fixed; left: 0; top: 0;
+                transform: translateX(-100%); border-right: 2px solid #222;
             }
-            body.sidebar-open #sidebar {
-                transform: translateX(0); /* Slide in */
-            }
-
+            body.sidebar-open #sidebar { transform: translateX(0); }
             .gallery-container { padding: 1rem; }
             .gallery-container h2 { font-size: 1.8rem; }
-            .game-gallery {
-                /* --- CSS CHANGES HERE --- */
-                gap: 1rem;
-                grid-template-columns: repeat(2, 1fr); /* This creates exactly 2 columns */
-            }
-            .game-card img {
-                /* --- CSS CHANGES HERE --- */
-                height: 100px; /* Reduced image height for a smaller card */
-            }
-            .game-card h3 {
-                /* --- CSS CHANGES HERE --- */
-                font-size: 0.9rem; /* Smaller font for the title */
-                margin: 0.75rem; /* Adjusted margin */
-            }
+            .game-gallery { gap: 1rem; grid-template-columns: repeat(2, 1fr); }
+            .game-card img { height: 100px; }
+            .game-card h3 { font-size: 0.9rem; margin: 0.75rem; }
         }
     </style>
 </head>
@@ -189,15 +157,9 @@
     <aside id="sidebar">
         <h1>Guahh Games</h1>
         <ul class="sidebar-tabs">
-            <li class="tab active" data-tab="home">
-                <i class="fa-solid fa-house"></i> <span>Home</span>
-            </li>
-            <li class="tab" data-tab="search">
-                <i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>
-            </li>
-            <li class="tab" data-tab="liked">
-                <i class="fa-solid fa-heart"></i> <span>Liked</span>
-            </li>
+            <li class="tab active" data-tab="home"><i class="fa-solid fa-house"></i> <span>Home</span></li>
+            <li class="tab" data-tab="search"><i class="fa-solid fa-magnifying-glass"></i> <span>Search</span></li>
+            <li class="tab" data-tab="liked"><i class="fa-solid fa-heart"></i> <span>Liked</span></li>
         </ul>
     </aside>
 
@@ -215,13 +177,11 @@
             <h2>All Games</h2>
             <div id="home-gallery" class="game-gallery"></div>
         </div>
-        
         <div id="search-container" class="gallery-container hidden">
             <h2>Search</h2>
             <input type="search" id="search-bar" placeholder="Search for a game...">
             <div id="search-results-gallery" class="game-gallery"></div>
         </div>
-
         <div id="liked-container" class="gallery-container hidden">
             <h2>Liked Games</h2>
             <div id="liked-gallery" class="game-gallery"></div>
@@ -236,7 +196,7 @@
         <div id="in-game-menu" class="hidden"></div>
     </div>
 
-    <!-- ========= JAVASCRIPT LOGIC (Unchanged) ========= -->
+    <!-- ========= JAVASCRIPT LOGIC ========= -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const gamesData = [
@@ -268,6 +228,7 @@
             let currentlyPlayingGameId = null;
             let likedGameIds = [];
             let recentGameIds = [];
+            let selectedMenuIndex = -1; // For keyboard navigation
 
             const getFromStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
             const saveToStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
@@ -293,7 +254,6 @@
                 }
                 const lowerCaseSearch = searchTerm.toLowerCase();
                 const filteredGames = gamesData.filter(game => game.title.toLowerCase().includes(lowerCaseSearch));
-                
                 if (filteredGames.length === 0) {
                     searchResultsGallery.innerHTML = `<p class="empty-gallery-message">No games found for "${searchTerm}"</p>`;
                 } else {
@@ -328,7 +288,6 @@
                 document.getElementById('mobile-header').style.display = 'none';
                 sidebar.style.display = 'none';
                 gameView.classList.remove('hidden');
-
                 recentGameIds = recentGameIds.filter(id => id !== game.id);
                 recentGameIds.unshift(game.id);
                 if (recentGameIds.length > 4) recentGameIds.pop();
@@ -346,6 +305,7 @@
                     sidebar.style.display = 'flex';
                 }
                 inGameMenu.classList.add('hidden');
+                selectedMenuIndex = -1; // Reset selection
                 renderLikedGames(); 
                 renderContinuePlaying();
             };
@@ -370,6 +330,32 @@
                 inGameMenu.appendChild(likeOption);
             };
 
+            const updateMenuHighlight = (newIndex) => {
+                const options = inGameMenu.querySelectorAll('.menu-option');
+                if (options.length === 0) return;
+                
+                // Remove existing highlight
+                if (selectedMenuIndex > -1) {
+                    options[selectedMenuIndex].classList.remove('selected');
+                }
+                
+                // Add new highlight
+                options[newIndex].classList.add('selected');
+                selectedMenuIndex = newIndex;
+            };
+            
+            const toggleInGameMenu = () => {
+                const isHidden = inGameMenu.classList.contains('hidden');
+                if (isHidden) {
+                    updateInGameMenu();
+                    inGameMenu.classList.remove('hidden');
+                    updateMenuHighlight(0); // Select first item
+                } else {
+                    inGameMenu.classList.add('hidden');
+                    selectedMenuIndex = -1; // Deselect
+                }
+            };
+
             const toggleMobileMenu = () => {
                 document.body.classList.toggle('sidebar-open');
                 overlay.classList.toggle('hidden');
@@ -377,6 +363,11 @@
 
             mobileMenuToggle.addEventListener('click', toggleMobileMenu);
             overlay.addEventListener('click', toggleMobileMenu);
+
+            menuButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleInGameMenu();
+            });
 
             sidebarTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -393,7 +384,45 @@
             });
 
             searchBar.addEventListener('input', (e) => renderSearchResults(e.target.value));
-            window.addEventListener('click', () => { if (!inGameMenu.classList.contains('hidden')) inGameMenu.classList.add('hidden'); });
+            
+            window.addEventListener('click', () => {
+                if (!inGameMenu.classList.contains('hidden')) {
+                    inGameMenu.classList.add('hidden');
+                    selectedMenuIndex = -1;
+                }
+            });
+            
+            // --- GLOBAL KEY PRESS HANDLER ---
+            window.addEventListener('keydown', (e) => {
+                // Only handle keys if a game is being played
+                if (currentlyPlayingGameId === null) return;
+
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    toggleInGameMenu();
+                }
+
+                // Handle menu navigation if the menu is visible
+                if (!inGameMenu.classList.contains('hidden')) {
+                    const options = inGameMenu.querySelectorAll('.menu-option');
+                    if (options.length === 0) return;
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const newIndex = (selectedMenuIndex + 1) % options.length;
+                        updateMenuHighlight(newIndex);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const newIndex = (selectedMenuIndex - 1 + options.length) % options.length;
+                        updateMenuHighlight(newIndex);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (selectedMenuIndex > -1) {
+                            options[selectedMenuIndex].click();
+                        }
+                    }
+                }
+            });
 
             function init() {
                 likedGameIds = getFromStorage('guahh_likedGames');

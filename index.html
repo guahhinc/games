@@ -85,7 +85,6 @@
         .game-card h3 { margin: 1rem; font-size: 1.3rem; }
         .empty-gallery-message { font-size: 1.2rem; color: #888; }
         
-        /* --- Continue Playing & Search --- */
         #continue-playing-container {
             margin-bottom: 3rem;
         }
@@ -103,7 +102,7 @@
         }
         #search-bar:focus { outline: none; border-color: var(--primary-color); }
 
-        /* --- In-Game View Styles --- */
+        /* In-Game View */
         #game-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; z-index: 1000; }
         #game-frame { width: 100%; height: 100%; border: none; }
         #menu-button {
@@ -126,10 +125,9 @@
         .menu-option .fa-heart-crack { color: #aaa; }
         .menu-option:hover { background-color: var(--primary-color); }
         
-        /* --- Utility Class --- */
         .hidden { display: none !important; }
 
-        /* --- RESPONSIVE DESIGN --- */
+        /* RESPONSIVE DESIGN */
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; overflow: visible; }
             #sidebar {
@@ -158,8 +156,11 @@
             <li class="tab active" data-tab="home">
                 <i class="fa-solid fa-house"></i> <span>Home</span>
             </li>
-            <li class="tab" data-tab="liked-games">
-                <i class="fa-solid fa-heart"></i> <span>Liked Collection</span>
+            <li class="tab" data-tab="search">
+                <i class="fa-solid fa-magnifying-glass"></i> <span>Search</span>
+            </li>
+            <li class="tab" data-tab="liked">
+                <i class="fa-solid fa-heart"></i> <span>Liked</span>
             </li>
         </ul>
     </aside>
@@ -170,15 +171,19 @@
                 <h2>Continue Playing</h2>
                 <div id="continue-playing-gallery" class="game-gallery"></div>
             </div>
-
-            <h2>Home</h2>
-            <input type="search" id="search-bar" placeholder="Search for a game...">
+            <h2>All Games</h2>
             <div id="home-gallery" class="game-gallery"></div>
         </div>
         
-        <div id="liked-games-container" class="gallery-container hidden">
-            <h2>Liked Collection</h2>
-            <div id="liked-games-gallery" class="game-gallery"></div>
+        <div id="search-container" class="gallery-container hidden">
+            <h2>Search</h2>
+            <input type="search" id="search-bar" placeholder="Search for a game...">
+            <div id="search-results-gallery" class="game-gallery"></div>
+        </div>
+
+        <div id="liked-container" class="gallery-container hidden">
+            <h2>Liked Games</h2>
+            <div id="liked-gallery" class="game-gallery"></div>
         </div>
     </main>
 
@@ -194,16 +199,17 @@
             // ========= YOUR GAME DATABASE =========
             const gamesData = [
                 { id: "crazycattle3d", title: "Crazy Cattle 3D", thumbnail: "games/crazycattle3d/thumbnail.png", url: "games/crazycattle3d/crazycattle3d.html" },
-                { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html" },
-                { id: "game-two", title: "Game Two", thumbnail: "games/game-two/thumbnail.png", url: "games/game-two/index.html" }
+                { id: "webfarm", title: "Web Farm", thumbnail: "games/webfarm/thumbnail.png", url: "games/webfarm/webfarm.html" }
             ];
 
             // --- Get references to all HTML elements ---
             const mainContent = document.getElementById('main-content');
             const homeContainer = document.getElementById('home-container');
-            const likedGamesContainer = document.getElementById('liked-games-container');
+            const searchContainer = document.getElementById('search-container');
+            const likedContainer = document.getElementById('liked-container');
             const homeGallery = document.getElementById('home-gallery');
-            const likedGamesGallery = document.getElementById('liked-games-gallery');
+            const likedGallery = document.getElementById('liked-gallery');
+            const searchResultsGallery = document.getElementById('search-results-gallery');
             const continuePlayingContainer = document.getElementById('continue-playing-container');
             const continuePlayingGallery = document.getElementById('continue-playing-gallery');
             const sidebarTabs = document.querySelectorAll('.tab');
@@ -231,25 +237,34 @@
                 return card;
             };
 
-            const renderHomeGames = (searchTerm = '') => {
+            const renderAllGames = () => {
                 homeGallery.innerHTML = '';
+                gamesData.forEach(game => homeGallery.appendChild(createGameCard(game)));
+            };
+
+            const renderSearchResults = (searchTerm = '') => {
+                searchResultsGallery.innerHTML = '';
+                if (!searchTerm) {
+                    searchResultsGallery.innerHTML = `<p class="empty-gallery-message">Type in the search bar to find games.</p>`;
+                    return;
+                }
                 const lowerCaseSearch = searchTerm.toLowerCase();
                 const filteredGames = gamesData.filter(game => game.title.toLowerCase().includes(lowerCaseSearch));
                 
                 if (filteredGames.length === 0) {
-                    homeGallery.innerHTML = `<p class="empty-gallery-message">No games found for "${searchTerm}"</p>`;
+                    searchResultsGallery.innerHTML = `<p class="empty-gallery-message">No games found for "${searchTerm}"</p>`;
                 } else {
-                    filteredGames.forEach(game => homeGallery.appendChild(createGameCard(game)));
+                    filteredGames.forEach(game => searchResultsGallery.appendChild(createGameCard(game)));
                 }
             };
             
             const renderLikedGames = () => {
-                likedGamesGallery.innerHTML = '';
+                likedGallery.innerHTML = '';
                 const likedGames = gamesData.filter(game => likedGameIds.includes(game.id));
                 if (likedGames.length === 0) {
-                    likedGamesGallery.innerHTML = `<p class="empty-gallery-message">Your liked collection is empty!</p>`;
+                    likedGallery.innerHTML = `<p class="empty-gallery-message">Your liked collection is empty!</p>`;
                 } else {
-                    likedGames.forEach(game => likedGamesGallery.appendChild(createGameCard(game)));
+                    likedGames.forEach(game => likedGallery.appendChild(createGameCard(game)));
                 }
             };
 
@@ -260,7 +275,7 @@
                     return;
                 }
                 continuePlayingContainer.classList.remove('hidden');
-                const recentGames = recentGameIds.map(id => gamesData.find(game => game.id === id)).filter(Boolean); // .filter(Boolean) removes any nulls if a game was deleted
+                const recentGames = recentGameIds.map(id => gamesData.find(game => game.id === id)).filter(Boolean);
                 recentGames.forEach(game => continuePlayingGallery.appendChild(createGameCard(game)));
             };
 
@@ -272,10 +287,9 @@
                 document.getElementById('sidebar').classList.add('hidden');
                 gameView.classList.remove('hidden');
 
-                // Update recently played games
-                recentGameIds = recentGameIds.filter(id => id !== game.id); // Remove if exists
-                recentGameIds.unshift(game.id); // Add to the front
-                if (recentGameIds.length > 4) recentGameIds.pop(); // Keep list to 4 games
+                recentGameIds = recentGameIds.filter(id => id !== game.id);
+                recentGameIds.unshift(game.id);
+                if (recentGameIds.length > 4) recentGameIds.pop();
                 saveToStorage('guahh_recentGames', recentGameIds);
             };
             
@@ -294,7 +308,7 @@
                     document.getElementById('sidebar').classList.remove('hidden');
                     inGameMenu.classList.add('hidden');
                     renderLikedGames(); 
-                    renderContinuePlaying(); // Update this section when leaving a game
+                    renderContinuePlaying();
                 };
                 
                 const likeOption = document.createElement('div');
@@ -325,12 +339,13 @@
                     tab.classList.add('active');
                     const activeTab = tab.dataset.tab;
                     homeContainer.classList.toggle('hidden', activeTab !== 'home');
-                    likedGamesContainer.classList.toggle('hidden', activeTab !== 'liked-games');
+                    searchContainer.classList.toggle('hidden', activeTab !== 'search');
+                    likedContainer.classList.toggle('hidden', activeTab !== 'liked');
                 });
             });
 
             searchBar.addEventListener('input', (e) => {
-                renderHomeGames(e.target.value);
+                renderSearchResults(e.target.value);
             });
 
             window.addEventListener('click', () => {
@@ -342,8 +357,9 @@
                 likedGameIds = getFromStorage('guahh_likedGames');
                 recentGameIds = getFromStorage('guahh_recentGames');
                 renderContinuePlaying();
-                renderHomeGames();
+                renderAllGames();
                 renderLikedGames();
+                renderSearchResults(); // Renders the initial "Type to search" message
             }
             init();
         });

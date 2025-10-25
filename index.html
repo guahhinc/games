@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guahh Games</title>
+
+    <!-- ========= FONT AND ICON IMPORTS ========= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ========= CSS STYLES ========= -->
+    <style>
+        :root {
+            --primary-color: #6a00ff;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --sidebar-bg: #000000;
+            --text-color: #ffffff;
+            --main-font: 'Inter Tight', sans-serif;
+        }
+
+        body {
+            font-family: var(--main-font);
+            margin: 0;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll on desktop */
+        }
+        
+        /* --- Sidebar Styles (Desktop) --- */
+        #sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            height: 100%;
+            padding: 1.5rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #222;
+            transition: width 0.3s ease;
+        }
+
+        #sidebar h1 {
+            font-size: 1.8rem; /* Made smaller */
+            color: var(--text-color); /* Made white */
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .sidebar-tabs {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tab {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tab i {
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        .tab:hover {
+            background-color: #2a2a2a;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 700;
+        }
+
+        /* --- Main Content Styles --- */
+        #main-content {
+            flex-grow: 1;
+            height: 100%;
+            overflow-y: auto; /* Allows content to scroll */
+        }
+        
+        .gallery-container {
+            padding: 2rem;
+        }
+        
+        .gallery-container h2 {
+            font-size: 2rem;
+            margin-top: 0;
+        }
+
+        .game-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: 0 10px 20px rgba(106, 0, 255, 0.5);
+        }
+
+        .game-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .game-card h3 {
+            margin: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .empty-gallery-message {
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        /* --- In-Game View Styles --- */
+        #game-view {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 1000;
+        }
+
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* In-Game Menu */
+        #menu-button {
+            position: fixed; top: 20px; left: 20px; z-index: 1010;
+            background-color: rgba(0,0,0,0.7); color: white;
+            border: 1px solid var(--primary-color); border-radius: 50%;
+            width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        #menu-button:hover { transform: scale(1.1); }
+        #in-game-menu {
+            position: fixed; top: 80px; left: 20px; z-index: 1005;
+            background-color: var(--card-bg); border-radius: 8px;
+            padding: 0.5rem 0; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .menu-option {
+            padding: 1rem 1.5rem; cursor: pointer;
+            color: var(--text-color); transition: background-color 0.2s;
+            min-width: 180px; display: flex; align-items: center;
+        }
+        .menu-option i { margin-right: 12px; }
+        .menu-option .fa-heart { color: #ff4d4d; }
+        .menu-option .fa-heart-crack { color: #aaa; }
+        .menu-option:hover { background-color: var(--primary-color); }
+        
+        /* --- Utility Class --- */
+        .hidden { display: none !important; }
+
+        /* --- RESPONSIVE DESIGN FOR TABLET & PHONE --- */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Stack sidebar and content vertically */
+                height: auto;
+                overflow: visible; /* Allow normal body scroll */
+            }
+
+            #sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row; /* Arrange title and tabs horizontally */
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 1rem;
+                border-right: none;
+                border-bottom: 2px solid #222;
+            }
+
+            #sidebar h1 {
+                margin-bottom: 0;
+                font-size: 1.5rem; /* Smaller title for nav bar */
+            }
+
+            .sidebar-tabs {
+                display: flex; /* Make tabs horizontal */
+            }
+
+            .tab {
+                margin-bottom: 0;
+                padding: 0.8rem;
+            }
+            
+            /* On mobile, we hide the text and only show the icon for a cleaner look */
+            .tab span {
+               display: none;
+            }
+            
+            .tab i {
+               margin-right: 0;
+            }
+
+            #main-content {
+                height: auto;
+                overflow-y: visible;
+            }
+            
+            .gallery-container {
+                padding: 1rem; /* Less padding on mobile */
+            }
+            
+            .game-gallery {
+                gap: 1rem; /* Smaller gap on mobile */
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .game-card img { height: 130px; }
+            .game-card h3 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <h1>Guahh Games</h1>
+        <ul class="sidebar-tabs">
+            <li class="tab active" data-tab="all-games">
+                <i class="fa-solid fa-gamepad"></i> <span>All Games</span>
+            </li>
+            <li class="tab" data-tab="liked-games">
+                <i class="fa-solid fa-heart"></i> <span>Liked Collection</span>
+            </li>
+        </ul>
+    </aside>
+
+    <main id="main-content">
+        <div id="all-games-container" class="gallery-container">
+            <h2>All Games</h2>
+            <div id="all-games-gallery" class="game-gallery"></div>
+        </div>
+        
+        <div id="liked-games-container" class="gallery-container hidden">
+            <h2>Liked Collection</h2>
+            <div id="liked-games-gallery" class="game-gallery"></div>
+        </div>
+    </main>
+
+    <div id="game-view" class="hidden">
+        <iframe id="game-frame" allowfullscreen></iframe>
+        <button id="menu-button"><i class="fa-solid fa-bars"></i></button>
+        <div id="in-game-menu" class="hidden"></div>
+    </div>
+
+    <!-- ========= JAVASCRIPT LOGIC ========= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ========= YOUR GAME DATABASE =========
+            const gamesData = [
+                { 
+                    id: "crazycattle3d", 
+                    title: "Crazy Cattle 3D", 
+                    thumbnail: "games/crazycattle3d/thumbnail.png", // Make sure you create this image!
+                    url: "games/crazycattle3d/crazycattle3d.html"   // This is the local path to your game
+                },
+                { 
+                    id: "game-one", 
+                    title: "Game One", 
+                    thumbnail: "games/game-one/thumbnail.png", 
+                    url: "games/game-one/index.html" 
+                },
+                { 
+                    id: "game-two", 
+                    title: "Game Two", 
+                    thumbnail: "games/game-two/thumbnail.png", 
+                    url: "games/game-two/index.html" 
+                }
+            ];
+
+            const mainContent = document.getElementById('main-content');
+            const allGamesContainer = document.getElementById('all-games-container');
+            const likedGamesContainer = document.getElementById('liked-games-container');
+            const allGamesGallery = document.getElementById('all-games-gallery');
+            const likedGamesGallery = document.getElementById('liked-games-gallery');
+            const sidebarTabs = document.querySelectorAll('.tab');
+            const gameView = document.getElementById('game-view');
+            const gameFrame = document.getElementById('game-frame');
+            const menuButton = document.getElementById('menu-button');
+            const inGameMenu = document.getElementById('in-game-menu');
+            
+            let currentlyPlayingGameId = null;
+            let likedGameIds = [];
+
+            const getLikedGamesFromStorage = () => JSON.parse(localStorage.getItem('guahh_likedGames')) || [];
+            const saveLikedGamesToStorage = (ids) => localStorage.setItem('guahh_likedGames', JSON.stringify(ids));
+
+            const createGameCard = (game) => {
+                const card = document.createElement('div');
+                card.classList.add('game-card');
+                card.innerHTML = `<img src="${game.thumbnail}" alt="${game.title}"><h3>${game.title}</h3>`;
+                card.addEventListener('click', () => launchGame(game));
+                return card;
+            };
+
+            const renderAllGames = () => {
+                allGamesGallery.innerHTML = '';
+                gamesData.forEach(game => {
+                    allGamesGallery.appendChild(createGameCard(game));
+                });
+            };
+            
+            const renderLikedGames = () => {
+                likedGamesGallery.innerHTML = '';
+                const likedGames = gamesData.filter(game => likedGameIds.includes(game.id));
+                
+                if (likedGames.length === 0) {
+                    likedGamesGallery.innerHTML = `<p class="empty-gallery-message">Your liked collection is empty!</p>`;
+                } else {
+                    likedGames.forEach(game => {
+                        likedGamesGallery.appendChild(createGameCard(game));
+                    });
+                }
+            };
+
+            const launchGame = (game) => {
+                currentlyPlayingGameId = game.id;
+                gameFrame.src = game.url;
+                mainContent.classList.add('hidden');
+                document.getElementById('sidebar').classList.add('hidden');
+                gameView.classList.remove('hidden');
+            };
+            
+            const updateInGameMenu = () => {
+                inGameMenu.innerHTML = '';
+                const isLiked = likedGameIds.includes(currentlyPlayingGameId);
+                
+                const leaveOption = document.createElement('div');
+                leaveOption.classList.add('menu-option');
+                leaveOption.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> <span>Leave Game</span>`;
+                leaveOption.onclick = () => {
+                    gameFrame.src = 'about:blank';
+                    currentlyPlayingGameId = null;
+                    gameView.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    document.getElementById('sidebar').classList.remove('hidden');
+                    inGameMenu.classList.add('hidden');
+                    renderLikedGames(); 
+                };
+                
+                const likeOption = document.createElement('div');
+                likeOption.classList.add('menu-option');
+                likeOption.innerHTML = isLiked 
+                    ? `<i class="fa-solid fa-heart-crack"></i> <span>Unlike Game</span>`
+                    : `<i class="fa-solid fa-heart"></i> <span>Like Game</span>`;
+                
+                likeOption.onclick = () => {
+                    likedGameIds = isLiked 
+                        ? likedGameIds.filter(id => id !== currentlyPlayingGameId)
+                        : [...likedGameIds, currentlyPlayingGameId];
+                    saveLikedGamesToStorage(likedGameIds);
+                    inGameMenu.classList.add('hidden');
+                    menuButton.style.transform = 'scale(1.2)';
+                    setTimeout(() => menuButton.style.transform = 'scale(1)', 200);
+                };
+                
+                inGameMenu.appendChild(leaveOption);
+                inGameMenu.appendChild(likeOption);
+            };
+
+            menuButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                updateInGameMenu();
+                inGameMenu.classList.toggle('hidden');
+            });
+
+            sidebarTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    sidebarTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const activeTab = tab.dataset.tab;
+                    allGamesContainer.classList.toggle('hidden', activeTab !== 'all-games');
+                    likedGamesContainer.classList.toggle('hidden', activeTab !== 'liked-games');
+                });
+            });
+
+            window.addEventListener('click', () => {
+                if (!inGameMenu.classList.contains('hidden')) {
+                    inGameMenu.classList.add('hidden');
+                }
+            });
+
+            function init() {
+                likedGameIds = getLikedGamesFromStorage();
+                renderAllGames();
+                renderLikedGames();
+            }
+            init();
+        });
+    </script>
+</body>
+</html>

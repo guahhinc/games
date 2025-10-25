@@ -90,12 +90,24 @@
         .game-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
         .game-card h3 { margin: 1rem; font-size: 1.3rem; }
         
+        /* --- UPDATED STYLE: Mobile Compatibility Tag --- */
         .mobile-tag {
-            position: absolute; top: 10px; left: 10px;
-            background-color: var(--primary-color); color: white;
-            padding: 5px 8px; border-radius: 5px; font-size: 0.8rem;
-            font-weight: 700; display: flex; align-items: center;
-            justify-content: center; z-index: 10;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6); /* Transparent black */
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .mobile-tag i {
+            margin-right: 6px; /* Space between icon and text */
         }
         
         .empty-gallery-message { font-size: 1.2rem; color: #888; }
@@ -156,7 +168,7 @@
             .game-gallery { gap: 1rem; grid-template-columns: repeat(2, 1fr); }
             .game-card img { height: 100px; }
             .game-card h3 { font-size: 0.9rem; margin: 0.75rem; }
-            .mobile-tag { top: 6px; left: 6px; font-size: 0.7rem; padding: 4px 6px; }
+            .mobile-tag { top: 6px; left: 6px; font-size: 0.7rem; padding: 4px 8px; }
         }
     </style>
 </head>
@@ -241,18 +253,22 @@
 
             const getFromStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
             const saveToStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+            
+            // --- UPDATED: createGameCard now adds "Mobile" text to the tag ---
             const createGameCard = (game) => {
                 const card = document.createElement('div');
                 card.classList.add('game-card');
-                const mobileTagHtml = game.isMobile ? `<div class="mobile-tag"><i class="fa-solid fa-mobile-screen-button"></i></div>` : '';
+                const mobileTagHtml = game.isMobile ? `<div class="mobile-tag"><i class="fa-solid fa-mobile-screen-button"></i> <span>Mobile</span></div>` : '';
                 card.innerHTML = `${mobileTagHtml}<img src="${game.thumbnail}" alt="${game.title}"><h3>${game.title}</h3>`;
                 card.addEventListener('click', () => launchGame(game));
                 return card;
             };
+
             const renderAllGames = () => {
                 homeGallery.innerHTML = '';
                 gamesData.forEach(game => homeGallery.appendChild(createGameCard(game)));
             };
+
             const renderSearchResults = (searchTerm = '') => {
                 searchResultsGallery.innerHTML = '';
                 if (!searchTerm) {
@@ -267,6 +283,7 @@
                     filteredGames.forEach(game => searchResultsGallery.appendChild(createGameCard(game)));
                 }
             };
+            
             const renderLikedGames = () => {
                 likedGallery.innerHTML = '';
                 const likedGames = gamesData.filter(game => likedGameIds.includes(game.id));
@@ -276,15 +293,19 @@
                     likedGames.forEach(game => likedGallery.appendChild(createGameCard(game)));
                 }
             };
+
+            // --- BUG FIX: renderContinuePlaying now correctly clears only the gallery ---
             const renderContinuePlaying = () => {
-                continuePlayingContainer.innerHTML = '';
+                continuePlayingGallery.innerHTML = ''; // This is the fix. Clears only the games.
                 if (recentGameIds.length === 0) {
-                    continuePlayingContainer.classList.add('hidden'); return;
+                    continuePlayingContainer.classList.add('hidden'); 
+                    return;
                 }
                 continuePlayingContainer.classList.remove('hidden');
                 const recentGames = recentGameIds.map(id => gamesData.find(game => game.id === id)).filter(Boolean);
                 recentGames.forEach(game => continuePlayingGallery.appendChild(createGameCard(game)));
             };
+
             const launchGame = (game) => {
                 currentlyPlayingGameId = game.id;
                 gameFrame.src = game.url;
@@ -298,19 +319,15 @@
                 saveToStorage('guahh_recentGames', recentGameIds);
             };
             
-            // --- UPDATED FUNCTION TO FIX MOBILE BUG ---
             const closeGame = () => {
                 gameFrame.src = 'about:blank';
                 currentlyPlayingGameId = null;
                 gameView.classList.add('hidden');
-
-                // Remove inline styles to let the CSS stylesheet take control again
                 mainContent.style.display = '';
                 sidebar.style.display = '';
                 document.getElementById('mobile-header').style.display = '';
-                
                 inGameMenu.classList.add('hidden');
-                selectedMenuIndex = -1; // Reset selection
+                selectedMenuIndex = -1;
                 renderLikedGames(); 
                 renderContinuePlaying();
             };

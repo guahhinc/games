@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guahh Launcher</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Base Theme */
+        :root {
+            /* Super Dark Grey Theme */
+            --bg-main: #1a1a1a;
+            --bg-sidebar: #121212; 
+            --bg-actionbar: #1f1f1f;
+            --bg-card: #242424;
+            --text-main: #d0d0d0;
+            --text-muted: #888888;
+            --text-bright: #ffffff;
+            --accent-blue: #1a9fff;
+            
+            /* Textured Button Variables */
+            --btn-blue-top: #2b84d1;
+            --btn-blue-bot: #1a629e;
+            --btn-blue-hover-top: #369aeb;
+            --btn-blue-hover-bot: #2273b5;
+            --btn-grey-top: #4e4e4e;
+            --btn-grey-bot: #333333;
+            --btn-grey-hover-top: #5e5e5e;
+            --btn-grey-hover-bot: #404040;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Motiva Sans", "Inter Tight", sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex; /* Sidebar and Main Content side-by-side */
+            overflow: hidden;
+        }
+
+        h1, h2, h3, p { margin: 0; }
+
+        /* ----- SIDEBAR ----- */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #0a0a0a;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .nav-brand {
+            color: var(--text-bright);
+            font-family: "Inter Tight", sans-serif;
+            font-size: 24px;
+            padding: 25px 20px;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover { 
+            color: var(--text-bright); 
+            background-color: rgba(255,255,255,0.05);
+        }
+        
+        .nav-item.active {
+            color: var(--accent-blue);
+            border-left: 4px solid var(--accent-blue);
+            background-color: rgba(26, 159, 255, 0.1);
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background-color: #2a2a2a;
+            margin: 10px 20px;
+        }
+
+        #sidebar-games {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .lib-list-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .lib-list-item:hover { 
+            color: var(--text-bright); 
+            background-color: rgba(255,255,255,0.05); 
+        }
+        
+        .lib-list-item.active { 
+            background-color: #2d2d2d; 
+            color: var(--text-bright); 
+            border-left: 4px solid #fff;
+        }
+
+        .lib-icon {
+            width: 36px; /* Made square again */
+            height: 36px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* ----- MAIN CONTENT AREA ----- */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .view-section {
+            display: none;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .view-section.active { display: flex; flex-direction: column; }
+
+        /* Buttons */
+        .btn-textured {
+            border: 1px solid rgba(0,0,0,0.8);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: filter 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.4);
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 500;
+        }
+
+        .btn-textured:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-textured:disabled { 
+            background: #2a2a2a; color: #666; cursor: default; 
+            box-shadow: none; border: 1px solid #111; text-shadow: none;
+        }
+
+        .btn-blue {
+            background: linear-gradient(to bottom, var(--btn-blue-top) 5%, var(--btn-blue-bot) 95%);
+            color: #ffffff;
+        }
+
+        .btn-grey {
+            background: linear-gradient(to bottom, var(--btn-grey-top) 5%, var(--btn-grey-bot) 95%);
+            color: #dcdcdc;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        /* ----- STORE VIEW ----- */
+        #view-store {
+            /* Changed from dark blue to dark grey radial gradient */
+            background: radial-gradient(circle at top center, #383838 0%, var(--bg-main) 40%);
+            padding: 40px;
+            align-items: center;
+        }
+
+        .store-header {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--text-bright);
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 500;
+        }
+
+        .store-card {
+            background-color: var(--bg-card);
+            width: 100%;
+            max-width: 900px;
+            border-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .store-banner {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            background-position: center 20%;
+            border-top-left-radius: 2px;
+            border-top-right-radius: 2px;
+        }
+
+        .store-details {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
+        }
+
+        .game-title { font-family: "Inter Tight", sans-serif; font-weight: 600; }
+        .store-info h2 { font-size: 28px; color: var(--text-bright); margin-bottom: 5px; }
+        .store-info p { color: var(--text-muted); font-size: 14px; margin-bottom: 4px; }
+        .purchase-box { background-color: #0d0d0d; padding: 6px; border-radius: 2px; display: flex; align-items: center; }
+        .price-tag { color: var(--text-bright); padding: 0 15px; font-size: 16px; }
+        .btn-add { padding: 10px 20px; font-size: 15px; }
+
+        /* ----- LIBRARY GRID VIEW ----- */
+        #view-library-grid {
+            padding: 40px;
+        }
+
+        .grid-header {
+            font-size: 24px;
+            color: var(--text-bright);
+            margin-bottom: 20px;
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 500;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-item {
+            background-color: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .grid-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.6);
+        }
+
+        .grid-banner {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .grid-title {
+            padding: 15px;
+            font-size: 16px;
+            color: var(--text-bright);
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .empty-lib {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 60vh;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        /* ----- GAME DETAILS VIEW ----- */
+        .hero-banner-container {
+            width: 100%;
+            height: 450px;
+            position: relative;
+            background-color: #000;
+        }
+
+        .hero-banner {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-position: center 20%;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+        }
+
+        .game-logo-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            font-size: 56px;
+            color: white;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.9);
+            letter-spacing: 0.5px;
+        }
+
+        .action-bar {
+            background-color: var(--bg-actionbar);
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            border-bottom: 1px solid #111;
+        }
+
+        .btn-play {
+            padding: 12px 40px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .play-icon {
+            width: 0; height: 0;
+            border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+            border-left: 12px solid #ffffff;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.5));
+        }
+
+        .meta-stat { display: flex; flex-direction: column; }
+        .meta-label { color: #888888; font-size: 12px; margin-bottom: 4px; }
+        .meta-value { color: var(--text-main); font-size: 14px; }
+        
+        .spacer { flex: 1; }
+        .action-buttons-right { display: flex; gap: 10px; }
+        
+        .game-content-area { padding: 40px; max-width: 800px; }
+
+        .updates-container {
+            margin-top: 40px; background: #222222;
+            border: 1px solid #2a2a2a; border-radius: 4px; padding: 20px;
+        }
+
+        .updates-container h3 {
+            color: var(--text-bright); margin-bottom: 15px; padding-bottom: 10px;
+            border-bottom: 1px solid #333; font-weight: 500;
+        }
+
+        details { margin-bottom: 10px; background: #2a2a2a; border-radius: 4px; }
+        summary {
+            padding: 15px; cursor: pointer; color: var(--accent-blue); list-style: none;
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 500;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary:hover { background: #333333; }
+        summary::after { content: '▼'; font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+        details[open] summary::after { transform: rotate(180deg); }
+
+        .update-notes { padding: 0 20px 20px 20px; font-size: 14px; line-height: 1.6; }
+        .update-notes ul { margin: 10px 0 0 0; padding-left: 20px; }
+        .update-notes li { margin-bottom: 6px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="nav-brand">Guahh Launcher</div>
+        
+        <div class="nav-menu">
+            <div class="nav-item" id="nav-store" onclick="showStore()">Store</div>
+            <div class="nav-item active" id="nav-library" onclick="showLibrary()">Library</div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div id="sidebar-games"></div>
+    </div>
+
+    <div class="content">
+        
+        <div id="view-store" class="view-section">
+            <div class="store-header">New & Trending</div>
+            <div class="store-card">
+                <img src="https://raw.githubusercontent.com/guahhinc/guahh/main/Web%20Farm.png" alt="Web Farm" class="store-banner">
+                <div class="store-details">
+                    <div class="store-info">
+                        <h2 class="game-title" id="store-title">Web Farm</h2>
+                        <p>Developer: <span id="store-dev">Guahh</span></p>
+                        <p>Genre: Casual</p>
+                        <p style="margin-top: 8px;">A simple online farming game where you grow crops and build your own farm.</p>
+                    </div>
+                    <div class="purchase-box">
+                        <span class="price-tag">Free to Play</span>
+                        <button id="btn-add-library" class="btn-textured btn-blue btn-add" onclick="addToLibrary()">Add to Library</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-library-grid" class="view-section active">
+            </div>
+
+        <div id="view-game-details" class="view-section">
+            </div>
+
+    </div>
+
+    <script>
+        // Game Database
+        const game = {
+            id: 'webfarm',
+            name: 'Web Farm',
+            developer: 'Guahh',
+            developerUrl: 'https://guahh.net',
+            description: 'A simple online farming game where you grow crops and build your own farm.',
+            genre: 'Casual',
+            version: '1.2.8',
+            storeImage: 'https://raw.githubusercontent.com/guahhinc/guahh/main/Web%20Farm.png',
+            libraryBanner: 'https://raw.githubusercontent.com/guahhinc/guahh/main/Copy%20of%20Web%20Farm.png',
+            url: 'https://farm.guahh.net',
+            updates: [
+                {
+                    title: "v1.2.8 Super Seeded",
+                    notes: `
+                        <ul>
+                            <li>Added Super Seed</li>
+                            <li>Added Mangosteen and Passionfruit</li>
+                            <li>Added Leaderboards</li>
+                            <li>Added Twisted Mutation</li>
+                            <li>Added Gale Weather Event</li>
+                            <li>Revamped Tutorial Pop Ups</li>
+                            <li>Added 8th Growth Upgrade</li>
+                            <li>Bug Fixes</li>
+                        </ul>
+                    `
+                }
+            ]
+        };
+
+        // State
+        let isOwned = localStorage.getItem('owned_webfarm') === 'true';
+
+        // Initialize on load
+        window.onload = () => {
+            updateStoreButton();
+            renderSidebar();
+            
+            // Auto open to library grid or specific game if preferred. We'll show the Library Grid.
+            showLibrary();
+        };
+
+        // --- NAVIGATION LOGIC ---
+
+        function clearActiveStates() {
+            document.getElementById('nav-store').classList.remove('active');
+            document.getElementById('nav-library').classList.remove('active');
+            
+            // Clear sidebar game active states
+            const gameItems = document.querySelectorAll('.lib-list-item');
+            gameItems.forEach(item => item.classList.remove('active'));
+
+            // Hide all views
+            document.getElementById('view-store').classList.remove('active');
+            document.getElementById('view-library-grid').classList.remove('active');
+            document.getElementById('view-game-details').classList.remove('active');
+        }
+
+        function showStore() {
+            clearActiveStates();
+            document.getElementById('nav-store').classList.add('active');
+            document.getElementById('view-store').classList.add('active');
+        }
+
+        function showLibrary() {
+            clearActiveStates();
+            document.getElementById('nav-library').classList.add('active');
+            document.getElementById('view-library-grid').classList.add('active');
+            renderLibraryGrid();
+        }
+
+        function openGameDetails(gameId) {
+            clearActiveStates();
+            
+            // Highlight specific game in sidebar if it exists
+            const sidebarItem = document.getElementById(`side-game-${gameId}`);
+            if (sidebarItem) sidebarItem.classList.add('active');
+
+            document.getElementById('view-game-details').classList.add('active');
+            renderGameDetails();
+        }
+
+        // --- GAME ACTIONS ---
+
+        function updateStoreButton() {
+            const btn = document.getElementById('btn-add-library');
+            if (isOwned) {
+                btn.innerText = 'In Library';
+                btn.disabled = true;
+            } else {
+                btn.innerText = 'Add to Library';
+                btn.disabled = false;
+            }
+        }
+
+        function addToLibrary() {
+            isOwned = true;
+            localStorage.setItem('owned_webfarm', 'true');
+            updateStoreButton();
+            renderSidebar();
+            
+            // Optionally auto-switch to game details upon adding
+            openGameDetails(game.id);
+        }
+
+        function removeFromLibrary() {
+            if(confirm(`Are you sure you want to remove ${game.name} from your library?`)) {
+                isOwned = false;
+                localStorage.removeItem('owned_webfarm');
+                updateStoreButton();
+                renderSidebar();
+                showLibrary(); // Kick them back to the grid view since they don't own it anymore
+            }
+        }
+
+        function playGame() {
+            window.open(game.url, '_blank');
+        }
+
+        function openDeveloperSite() {
+            window.open(game.developerUrl, '_blank');
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        function renderSidebar() {
+            const sidebar = document.getElementById('sidebar-games');
+            if (!isOwned) {
+                sidebar.innerHTML = '';
+            } else {
+                // Uses the square storeImage for the small icon as requested
+                sidebar.innerHTML = `
+                    <div class="lib-list-item" id="side-game-${game.id}" onclick="openGameDetails('${game.id}')">
+                        <img src="${game.storeImage}" class="lib-icon" alt="icon">
+                        ${game.name}
+                    </div>
+                `;
+            }
+        }
+
+        function renderLibraryGrid() {
+            const gridContainer = document.getElementById('view-library-grid');
+            
+            if (!isOwned) {
+                gridContainer.innerHTML = `
+                    <div class="empty-lib">
+                        <h2>Your library is empty.</h2>
+                        <p style="margin-top: 10px;">Visit the Store to add games.</p>
+                    </div>
+                `;
+            } else {
+                // Shows a clean grid of all owned games
+                gridContainer.innerHTML = `
+                    <div class="grid-header">All Games</div>
+                    <div class="library-grid">
+                        <div class="grid-item" onclick="openGameDetails('${game.id}')">
+                            <img src="${game.libraryBanner}" class="grid-banner" alt="Banner">
+                            <div class="grid-title">${game.name}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderGameDetails() {
+            const detailsContainer = document.getElementById('view-game-details');
+            
+            if (!isOwned) {
+                detailsContainer.innerHTML = `<div class="empty-lib">Game not in library.</div>`;
+                return;
+            }
+
+            detailsContainer.innerHTML = `
+                <div class="hero-banner-container">
+                    <img src="${game.libraryBanner}" class="hero-banner" alt="Hero">
+                    <div class="game-logo-overlay game-title">${game.name}</div>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="btn-textured btn-blue btn-play" onclick="playGame()">
+                        <div class="play-icon"></div> Play
+                    </button>
+                    
+                    <div class="meta-stat">
+                        <span class="meta-label">Version</span>
+                        <span class="meta-value">${game.version}</span>
+                    </div>
+                    
+                    <div class="spacer"></div>
+                    
+                    <div class="action-buttons-right">
+                        <button class="btn-textured btn-grey" onclick="openDeveloperSite()">
+                            Developer Website
+                        </button>
+                        <button class="btn-textured btn-grey" onclick="removeFromLibrary()">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+
+                <div class="game-content-area">
+                    <h3 style="color: var(--text-bright); margin-bottom: 10px; font-weight: 500; font-family: 'Inter Tight', sans-serif;">About this game</h3>
+                    <p style="line-height: 1.6; color: var(--text-muted); margin-bottom: 20px;">
+                        ${game.description}
+                    </p>
+                    <p style="color: var(--text-muted);">
+                        Developer: <span style="color: var(--accent-blue); cursor: pointer;" onclick="openDeveloperSite()">${game.developer}</span><br>
+                        Genre: ${game.genre}
+                    </p>
+
+                    <div class="updates-container">
+                        <h3>Recent Updates</h3>
+                        ${game.updates.map((update, index) => `
+                            <details ${index === 0 ? 'open' : ''}>
+                                <summary>${update.title}</summary>
+                                <div class="update-notes">
+                                    ${update.notes}
+                                </div>
+                            </details>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

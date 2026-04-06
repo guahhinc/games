@@ -33,6 +33,11 @@
             --btn-grey-hover-bot: #404040;
         }
 
+        /* Fixes width/padding calculation to prevent accidental scrollbars */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -55,6 +60,7 @@
             border-right: 1px solid #0a0a0a;
             box-shadow: 2px 0 5px rgba(0,0,0,0.5);
             z-index: 10;
+            flex-shrink: 0; /* Prevents sidebar from shrinking */
         }
 
         .nav-brand {
@@ -133,12 +139,13 @@
         }
 
         .lib-icon {
-            width: 36px; /* Made square again */
+            width: 36px;
             height: 36px;
             object-fit: cover;
             border-radius: 4px;
             background: #000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
 
         /* ----- MAIN CONTENT AREA ----- */
@@ -148,6 +155,7 @@
             flex-direction: column;
             position: relative;
             overflow-y: auto;
+            overflow-x: hidden; /* Stops horizontal scrolling */
         }
 
         .view-section {
@@ -191,7 +199,6 @@
 
         /* ----- STORE VIEW ----- */
         #view-store {
-            /* Changed from dark blue to dark grey radial gradient */
             background: radial-gradient(circle at top center, #383838 0%, var(--bg-main) 40%);
             padding: 40px;
             align-items: center;
@@ -304,6 +311,7 @@
             height: 450px;
             position: relative;
             background-color: #000;
+            flex-shrink: 0;
         }
 
         .hero-banner {
@@ -332,6 +340,7 @@
             align-items: center;
             gap: 40px;
             border-bottom: 1px solid #111;
+            flex-shrink: 0;
         }
 
         .btn-play {
@@ -561,7 +570,6 @@
             if (!isOwned) {
                 sidebar.innerHTML = '';
             } else {
-                // Uses the square storeImage for the small icon as requested
                 sidebar.innerHTML = `
                     <div class="lib-list-item" id="side-game-${game.id}" onclick="openGameDetails('${game.id}')">
                         <img src="${game.storeImage}" class="lib-icon" alt="icon">
@@ -582,7 +590,6 @@
                     </div>
                 `;
             } else {
-                // Shows a clean grid of all owned games
                 gridContainer.innerHTML = `
                     <div class="grid-header">All Games</div>
                     <div class="library-grid">
